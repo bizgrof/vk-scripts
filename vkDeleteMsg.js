@@ -1,45 +1,46 @@
-/*
- * Простой скрипт который удаляет все диалоги
- * В том числе и не прочитанные (в будущем нужно будет улучшить)
- * Чтобы запустить скрипт, выполните функцию deleteAllMsg()
- */
-'use strict'
+// ==UserScript==
+// @name        deleteAllMsg
+// @namespace    http://bizgrof.ru/
+// @version      0.1
+// @description  Скрипт удаляет все сообщения
+// @author       Andrey Artamonov
+// @include      *://vk.com/*
+// ==/UserScript==
 
-function deleteAllMsg() {
-	// Чистим куки
-	setCookie('scrDelete', '', {expires: -1});
-
-
-	var dialogs = document.getElementsByClassName('nim-dialog--cw');
-	var counter = 0;
-
-	for ( var i = 0; i < dialogs.length; i++) {
-		// Кликаем на все крестики
-		dialogs[i].querySelector('.nim-dialog--close').click()
-
-		// Внешний счетчик
-		counter++
-	}
-
-	// Устанавливаем куки удаленных сообщений
-	document.cookie = "scrDelete=" + counter
-
-	// Ставим таймер на срабатывание скрипта
-	setTimeout(reloadPage, 500)
+// Добавляем ссылку в сайдбар и проверяем условие
+if (location.pathname === "/im") {
+    document.getElementsByClassName('im-right-menu')[0].insertAdjacentHTML('beforeend', '<div class="ui_rmenu_sep"><a class="ui_rmenu_item" onclick="init()">Удалить все сообщения</a></div>');
 }
 
-function reloadPage() {
-	// Жмем на все модалки
-	var modal = document.querySelectorAll('.box_layout')
+// Эта функция доступна извне tampermonkey
+// Проверка, нужно ли удалять
+unsafeWindow.init = function() {
+    var con = confirm('Удалить сообщения?');
+    if(con === true) {
+        deleteAllMsg();
+    }
+};
+
+// Функция удаления
+function deleteAllMsg(){
+    
+	var dialogs = document.getElementsByClassName('nim-dialog--cw'); // Ищем все диалоги
 	
-	for(i = 0; i < modal.length; i++) {
-		modal[i].querySelectorAll('.flat_button')[1].click()
+	for ( var i = 0; i < dialogs.length; i++) {
+		dialogs[i].querySelector('.nim-dialog--close').click(); // Кликаем на все крестики
 	}
 
-	// Перезагружаем страницу
-	location.reload()
-}
 
-// Получаем значение удаленных сообщений из куков
-var counterDelete = document.cookie.replace(/(?:(?:^|.*;\s*)scrDelete\s*\=\s*([^;]*).*$)|^.*$/, "$1")
-console.log("Удалено диалогов с последнего запуска: " + counterDelete)
+	setTimeout(reloadPage, 500); // Таймер специально необходим, чтобы модалки успели вылезти
+   
+   // Закрывалка модалок и перезагрузка
+    function reloadPage() {
+        var modal = document.querySelectorAll('.box_layout'); // Ищем модалку
+        
+        for(i = 0; i < modal.length; i++) {
+            modal[i].querySelectorAll('.flat_button')[1].click(); // Соглашаемся на все
+        }
+
+        location.reload(); // Перезагружаем страницу
+    }
+}
