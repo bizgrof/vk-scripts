@@ -7,13 +7,11 @@
 // @include      *://vk.com/*
 // ==/UserScript==
 
-// Добавляем ссылку в сайдбар и проверяем условие
+// Добавляем в сайдбар
 if (location.pathname === "/im") {
     document.getElementsByClassName('im-right-menu')[0].insertAdjacentHTML('beforeend', '<div class="ui_rmenu_sep"><a class="ui_rmenu_item" onclick="init()">Удалить все сообщения</a></div>');
 }
 
-// Эта функция доступна извне tampermonkey
-// Проверка, нужно ли удалять
 unsafeWindow.init = function() {
     var con = confirm('Удалить сообщения?');
     if(con === true) {
@@ -21,26 +19,27 @@ unsafeWindow.init = function() {
     }
 };
 
-// Функция удаления
 function deleteAllMsg(){
-    
-	var dialogs = document.getElementsByClassName('nim-dialog--cw'); // Ищем все диалоги
-	
-	for ( var i = 0; i < dialogs.length; i++) {
-		dialogs[i].querySelector('.nim-dialog--close').click(); // Кликаем на все крестики
-	}
+    var dialogs = document.getElementsByClassName('nim-dialog');
 
+    for ( var i = 0; i < dialogs.length; i++) {
+        // Кликаем на крестики, если прочитаны
+        if(!dialogs[i].classList.contains('nim-dialog_unread')){
+            dialogs[i].querySelector('.nim-dialog--close').click();
+        }
+    }
 
-	setTimeout(reloadPage, 500); // Таймер специально необходим, чтобы модалки успели вылезти
-   
+    // Ставим таймер на срабатывание скрипта
+    setTimeout(reloadPage, 500);
    // Закрывалка модалок и перезагрузка
     function reloadPage() {
-        var modal = document.querySelectorAll('.box_layout'); // Ищем модалку
-        
+        var modal = document.querySelectorAll('.box_layout');
         for(i = 0; i < modal.length; i++) {
-            modal[i].querySelectorAll('.flat_button')[1].click(); // Соглашаемся на все
+            modal[i].querySelectorAll('.flat_button')[1].click();
         }
 
-        location.reload(); // Перезагружаем страницу
+        // Перезагружаем страницу
+        location.reload();
     }
 }
+
